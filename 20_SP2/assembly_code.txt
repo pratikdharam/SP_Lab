@@ -1,0 +1,30 @@
+        START 100
+        ENTRY ARR
+        READ N
+        MOVER AREG, N
+        SUB AREG, ONE
+        MOVEM AREG, COUNT
+
+LOOP    MOVER AREG, COUNT
+        COMP AREG, ZERO
+        BC ZERO, ENDLOOP
+        MOVER BREG, N
+
+INNER   MOVER AREG, ARR(BREG)
+        COMP AREG, ARR-1(BREG)
+        BC LE, SKIP
+        XCHG ARR(BREG), ARR-1(BREG)
+
+SKIP    SUB BREG, ONE
+        BC POS, INNER
+        SUB COUNT, ONE
+        BC POS, LOOP
+
+ENDLOOP PRINT ARR
+        END
+
+      ONE     DC 1
+      ZERO    DC 0
+      N       DC 5
+      COUNT   DS 1
+      ARR     DC 9, 5, 8, 7, 4

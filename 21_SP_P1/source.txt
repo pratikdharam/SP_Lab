@@ -1,0 +1,25 @@
+START 100
+REA   D N              ; Read the number of elements (You can assume it's already 5 in this case)
+MOVER AREG, N       ; Load the number of elements into AREG
+SUB AREG, ONE       ; Subtract 1 (for the number of passes)
+MOVEM AREG, COUNT   ; Store the result in COUNT
+LOOP  MOVER AREG, COUNT; Load COUNT
+      COMP AREG, ZERO  ; Compare COUNT with zero
+      BC ZERO, ENDLOOP ; If zero, exit
+      MOVER BREG, N    ; Load the number of elements into BREG
+INNER MOVER AREG, ARR(BREG); Load ARR[i]
+      COMP AREG, ARR-1(BREG); Compare ARR[i] with ARR[i-1]
+      BC LE, SKIP      ; If ARR[i] <= ARR[i-1], skip swapping
+      XCHG ARR(BREG), ARR-1(BREG); Swap the two elements
+SKIP  SUB BREG, ONE    ; Decrement BREG (i = i-1)
+      BC POS, INNER    ; Repeat for all elements
+      SUB COUNT, ONE   ; Decrement COUNT (for each pass)
+      BC POS, LOOP     ; Repeat the outer loop
+ENDLOOP
+PRINT ARR             ; Print the sorted array
+END
+ONE   DC 1
+ZERO  DC 0
+N     DC 5            ; Number of elements is 5
+COUNT DS 1
+ARR   DC 9, 5, 8, 7, 4; Declare the array with 5 elements

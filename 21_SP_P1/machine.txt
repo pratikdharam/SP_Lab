@@ -1,0 +1,21 @@
+100 09 01                     ; START 100
+101 09 01                     ; READ N
+102 04 01                     ; MOVER AREG, N
+103 05 01 04                  ; SUB AREG, ONE
+104 06 01 02                  ; MOVEM AREG, COUNT
+105 04 01 02                  ; MOVER AREG, COUNT
+106 10 01 00                  ; COMP AREG, ZERO
+107 07 205                     ; BC ZERO, ENDLOOP
+108 04 02 01                  ; MOVER BREG, N
+109 04 01 06                  ; MOVER AREG, ARR(BREG)
+110 10 01 07                  ; COMP AREG, ARR-1(BREG)
+111 07 205                     ; BC LE, SKIP
+112 11 06 07                  ; XCHG ARR(BREG), ARR-1(BREG)
+113 05 02 01                  ; SUB BREG, ONE
+114 07 102                     ; BC POS, INNER
+115 05 02 01                  ; SUB COUNT, ONE
+116 07 101                     ; BC POS, LOOP
+117 00                         ; END
+118 01 01                     ; ONE DC 1
+119 00 00                     ; ZERO DC 0
+120 00 05                     ; ARR DS 5
