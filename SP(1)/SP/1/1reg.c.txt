@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_LINE_LENGTH 100
+#define MAX_REGISTER_COUNT 4
+
+// Register Data Structure
+typedef struct {
+    char register_name[3]; // AX, BX, etc.
+    int value;  // Value for each register
+} Register;
+
+// Register table to store registers and their values
+Register registers[MAX_REGISTER_COUNT] = {
+    {"AX", 0},
+    {"BX", 0},
+    {"CX", 0},
+    {"DX", 0}
+};
+
+// Function to print the Register Table
+void print_registers_table(FILE *file) {
+    for (int i = 0; i < MAX_REGISTER_COUNT; i++) {
+        fprintf(file, "%-10s %-5d\n", registers[i].register_name, registers[i].value);
+    }
+}
+
+// Function to update register values based on instructions
+void update_register_value(const char *register_name, int value) {
+    for (int i = 0; i < MAX_REGISTER_COUNT; i++) {
+        if (strcmp(registers[i].register_name, register_name) == 0) {
+            registers[i].value = value;
+            break;
+        }
+    }
+}
+
+// Function to process a line of assembly code and update registers (example)
+void process_line_for_registers(char *line) {
+    char register_name[3];
+    int value;
+
+    // For simplicity, we'll assume the line is in the format: REGISTER VALUE
+    if (sscanf(line, "%s %d", register_name, &value) == 2) {
+        update_register_value(register_name, value);
+    }
+}
+
+int main() {
+    FILE *registers_file = fopen("registers.txt", "w");
+    if (registers_file == NULL) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    char line[MAX_LINE_LENGTH];
+
+    printf("Enter assembly code lines to update register values (e.g., AX 0105). Enter an empty line to finish:\n");
+
+    // Taking input line by line and updating registers
+    while (1) {
+        printf("> ");
+        if (fgets(line, sizeof(line), stdin) == NULL || line[0] == '\n') {
+            break;  // End input on empty line
+        }
+
+        // Update registers based on the line
+        process_line_for_registers(line);
+    }
+
+    // Write the final register values to the file
+    fprintf(registers_file, "Registers Table:\n");
+    print_registers_table(registers_file);
+
+    fclose(registers_file);
+    printf("Registers Table generated successfully.\n");
+    return 0;
+}

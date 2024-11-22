@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_LITERALS 100
+
+typedef struct {
+    char literal[10];
+    int address;
+} LiteralTableEntry;
+
+LiteralTableEntry literal_table[MAX_LITERALS];
+int literal_table_index = 0;
+int location_counter = 0;
+
+// Function to add a literal to the literal table
+void add_literal(char *literal) {
+    strcpy(literal_table[literal_table_index].literal, literal);
+    literal_table_index++;
+}
+
+// Function to assign addresses to literals
+void assign_addresses() {
+    for (int i = 0; i < literal_table_index; i++) {
+        literal_table[i].address = location_counter++;
+    }
+}
+
+// Function to display the Literal Table
+void display_literal_table() {
+    printf("\nLiteral Table:\n");
+    printf("Literal\tAddress\n");
+    for (int i = 0; i < literal_table_index; i++) {
+        printf("%s\t%d\n", literal_table[i].literal, literal_table[i].address);
+    }
+}
+
+int main() {
+    char *assembly_code[] = {
+        "START 100",
+        "MOVER AREG, ='5'",
+        "ADD BREG, ='10'",
+        "LTORG",
+        "ORIGIN 200",
+        "MOVER CREG, A",
+        "DC F'1'",
+        "END"
+    };
+    int lines = 8;
+
+    for (int i = 0; i < lines; i++) {
+        char line[50];
+        strcpy(line, assembly_code[i]);
+        char *mnemonic = strtok(line, " ");
+        char *operand1 = strtok(NULL, ", ");
+        char *operand2 = strtok(NULL, ", ");
+
+        if (strcmp(mnemonic, "START") == 0) {
+            location_counter = atoi(operand1);
+        } else if (strcmp(mnemonic, "LTORG") == 0 || strcmp(mnemonic, "END") == 0) {
+            assign_addresses(); // Assign addresses to literals
+        } else if (operand2 != NULL && operand2[0] == '=') {
+            add_literal(operand2);
+        }
+        location_counter++;
+    }
+
+    display_literal_table();
+    return 0;
+}

@@ -1,0 +1,5 @@
+Parameter Name Table (PNT):
+PNT for macro 'SWAP':
+PNT[0]: &X
+PNT[1]: &Y
+PNT[2]: &Y

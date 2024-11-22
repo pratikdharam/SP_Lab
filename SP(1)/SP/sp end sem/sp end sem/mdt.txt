@@ -1,0 +1,3 @@
+Macro Definition Table (MDT):
+MDT[0]: &X = &Y
+MDT[1]: &Y = TEMP

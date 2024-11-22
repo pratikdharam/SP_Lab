@@ -1,0 +1,7 @@
+MOVER - 1
+PRINT - 2
+ADD - 3
+SUB - 4
+COMP - 5
+MULT - 6
+MOVEM - 7

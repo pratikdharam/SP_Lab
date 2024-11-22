@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_LINE_LENGTH 100
+#define MAX_TOKEN_LENGTH 20
+
+// Symbol Data
+typedef struct {
+    char symbol[MAX_TOKEN_LENGTH];
+    int address;
+} Symbol;
+
+Symbol symbol_table[100];
+int symbol_count = 0;
+
+// Function to save to Symbol Table
+void save_to_file(FILE *file, const char *token, int address) {
+    fprintf(file, "%-10s %04d\n", token, address);
+}
+
+// Function to process Symbol Table
+void process_line_for_symbols(char *line, FILE *symbols_file, int *lc) {
+    char *token = strtok(line, " ,");
+    while (token != NULL) {
+        if (isalpha(token[0])) {
+            strcpy(symbol_table[symbol_count].symbol, token);
+            symbol_table[symbol_count].address = *lc;
+            symbol_count++;
+            save_to_file(symbols_file, token, *lc);
+        }
+        token = strtok(NULL, " ,");
+    }
+}
+
+// Main function to process assembly and generate Symbol Table
+int main() {
+    FILE *symbols_file = fopen("symbols.txt", "w");
+    if (symbols_file == NULL) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    char line[MAX_LINE_LENGTH];
+    int lc = 0;
+
+    printf("Enter assembly code line by line (enter an empty line to finish):\n");
+    while (1) {
+        printf("> ");
+        if (fgets(line, sizeof(line), stdin) == NULL || line[0] == '\n') {
+            break;
+        }
+        process_line_for_symbols(line, symbols_file, &lc);
+    }
+
+    fclose(symbols_file);
+    printf("Symbol Table generated successfully.\n");
+    return 0;
+}
+s

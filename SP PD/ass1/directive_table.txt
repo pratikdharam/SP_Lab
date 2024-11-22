@@ -1,0 +1,5 @@
+START - 1
+LTORG - 2
+EQU - 3
+ORIGIN - 4
+END - 5

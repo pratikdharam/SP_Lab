@@ -1,0 +1,39 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_LINE_LENGTH 100
+
+// Function to log errors to a file
+void log_error(FILE *error_file, const char *line, const char *error_message) {
+    fprintf(error_file, "Error: %s -> %s\n", error_message, line);
+}
+
+// Function to process assembly lines and generate error report
+void process_line_for_errors(char *line, FILE *error_file) {
+    if (strchr(line, '@') != NULL) {  // Example error case (just a placeholder)
+        log_error(error_file, line, "Invalid character '@' detected");
+    }
+}
+
+int main() {
+    FILE *error_file = fopen("errors.txt", "w");
+    if (error_file == NULL) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    char line[MAX_LINE_LENGTH];
+
+    printf("Enter assembly code line by line (enter an empty line to finish):\n");
+    while (1) {
+        printf("> ");
+        if (fgets(line, sizeof(line), stdin) == NULL || line[0] == '\n') {
+            break;
+        }
+        process_line_for_errors(line, error_file);
+    }
+
+    fclose(error_file);
+    printf("Error Report generated successfully.\n");
+    return 0;
+}

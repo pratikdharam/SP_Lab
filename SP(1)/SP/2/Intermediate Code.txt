@@ -1,0 +1,113 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_IC 100
+
+typedef struct {
+    int line_number;
+    char type[3]; // AD, IS, DL
+    int opcode;
+    char operand1[10];
+    char operand2[10];
+} IntermediateCodeEntry;
+
+IntermediateCodeEntry ic_table[MAX_IC];
+int ic_index = 0;
+
+// Function to add Intermediate Code entry
+void add_ic_entry(int line_number, char *type, int opcode, char *operand1, char *operand2) {
+    ic_table[ic_index].line_number = line_number;
+    strcpy(ic_table[ic_index].type, type);
+    ic_table[ic_index].opcode = opcode;
+    if (operand1 != NULL) {
+        strcpy(ic_table[ic_index].operand1, operand1);
+    } else {
+        strcpy(ic_table[ic_index].operand1, "-");
+    }
+    if (operand2 != NULL) {
+        strcpy(ic_table[ic_index].operand2, operand2);
+    } else {
+        strcpy(ic_table[ic_index].operand2, "-");
+    }
+    ic_index++;
+}
+
+// Function to display Intermediate Code
+void display_ic() {
+    printf("\nIntermediate Code:\n");
+    printf("Line\tType\tOpcode\tOperand1\tOperand2\n");
+    for (int i = 0; i < ic_index; i++) {
+        printf("%d\t%s\t%d\t%s\t\t%s\n",
+               ic_table[i].line_number,
+               ic_table[i].type,
+               ic_table[i].opcode,
+               ic_table[i].operand1,
+               ic_table[i].operand2);
+    }
+}
+
+int main() {
+    // Assembly code
+    char *assembly_code[] = {
+        "START 100",
+        "MOVER AREG, ='5'",
+        "ADD BREG, ='10'",
+        "LTORG",
+        "ORIGIN 200",
+        "MOVER CREG, A",
+        "DC F'1'",
+        "END"
+    };
+    int lines = 8;
+    int location_counter = 0;
+
+    // Hardcoded MOT table
+    struct {
+        char mnemonic[10];
+        int opcode;
+        char type[3]; // AD, IS, DL
+    } MOT[] = {
+        {"START", 1, "AD"},
+        {"MOVER", 1, "IS"},
+        {"ADD", 2, "IS"},
+        {"LTORG", 5, "AD"},
+        {"ORIGIN", 3, "AD"},
+        {"DC", 2, "DL"},
+        {"END", 2, "AD"}
+    };
+
+    for (int i = 0; i < lines; i++) {
+        char line[50];
+        strcpy(line, assembly_code[i]);
+        char *mnemonic = strtok(line, " ");
+        char *operand1 = strtok(NULL, ", ");
+        char *operand2 = strtok(NULL, ", ");
+        int mot_index = -1;
+
+        // Search for mnemonic in MOT
+        for (int j = 0; j < sizeof(MOT) / sizeof(MOT[0]); j++) {
+            if (strcmp(mnemonic, MOT[j].mnemonic) == 0) {
+                mot_index = j;
+                break;
+            }
+        }
+
+        if (mot_index != -1) {
+            add_ic_entry(i + 1, MOT[mot_index].type, MOT[mot_index].opcode, operand1, operand2);
+
+            if (strcmp(MOT[mot_index].type, "AD") == 0 && strcmp(mnemonic, "START") == 0) {
+                location_counter = atoi(operand1);
+            } else if (strcmp(MOT[mot_index].type, "AD") == 0 && strcmp(mnemonic, "ORIGIN") == 0) {
+                location_counter = atoi(operand1);
+            } else if (strcmp(MOT[mot_index].type, "DL") == 0 || strcmp(MOT[mot_index].type, "IS") == 0) {
+                location_counter++;
+            }
+        }
+    }
+
+    // Display Intermediate Code
+    display_ic();
+
+    return 0;
+}

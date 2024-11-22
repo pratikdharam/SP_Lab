@@ -1,0 +1,58 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_POOL 10
+
+typedef struct {
+    int start_index;
+} PoolTableEntry;
+
+PoolTableEntry pool_table[MAX_POOL];
+int pool_table_index = 0;
+int current_literal_index = 0;
+
+// Function to add a pool entry
+void add_pool_entry(int start_index) {
+    pool_table[pool_table_index].start_index = start_index;
+    pool_table_index++;
+}
+
+// Function to display the Pool Table
+void display_pool_table() {
+    printf("\nPool Table:\n");
+    printf("Start Index\n");
+    for (int i = 0; i < pool_table_index; i++) {
+        printf("%d\n", pool_table[i].start_index);
+    }
+}
+
+int main() {
+    char *assembly_code[] = {
+        "START 100",
+        "MOVER AREG, ='5'",
+        "ADD BREG, ='10'",
+        "LTORG",
+        "ORIGIN 200",
+        "MOVER CREG, A",
+        "DC F'1'",
+        "END"
+    };
+    int lines = 8;
+
+    for (int i = 0; i < lines; i++) {
+        char line[50];
+        strcpy(line, assembly_code[i]);
+        char *mnemonic = strtok(line, " ");
+        char *operand1 = strtok(NULL, ", ");
+        char *operand2 = strtok(NULL, ", ");
+
+        if (strcmp(mnemonic, "LTORG") == 0 || strcmp(mnemonic, "END") == 0) {
+            add_pool_entry(current_literal_index);
+            current_literal_index++;
+        }
+    }
+
+    display_pool_table();
+    return 0;
+}

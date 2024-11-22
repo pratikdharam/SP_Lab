@@ -1,0 +1,38 @@
+#include <stdio.h>
+
+#define MAX_LINE_LENGTH 100
+
+// Function to save LC Table
+void save_to_lc_table(FILE *lc_file, int lc, const char *line) {
+    fprintf(lc_file, "LC: %04d %s\n", lc, line);
+}
+
+// Function to generate LC Table
+void process_line_for_lc(char *line, FILE *lc_file, int *lc) {
+    save_to_lc_table(lc_file, *lc, line);
+    (*lc)++;  // Increment LC after each line
+}
+
+int main() {
+    FILE *lc_file = fopen("lc_table.txt", "w");
+    if (lc_file == NULL) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    char line[MAX_LINE_LENGTH];
+    int lc = 0;
+
+    printf("Enter assembly code line by line (enter an empty line to finish):\n");
+    while (1) {
+        printf("> ");
+        if (fgets(line, sizeof(line), stdin) == NULL || line[0] == '\n') {
+            break;
+        }
+        process_line_for_lc(line, lc_file, &lc);
+    }
+
+    fclose(lc_file);
+    printf("LC Table generated successfully.\n");
+    return 0;
+}

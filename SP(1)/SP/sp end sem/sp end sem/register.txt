@@ -1,0 +1,11 @@
+AX
+BX
+AX
+BX
+CX
+AX
+CX
+DX
+DX
+DX
+CX

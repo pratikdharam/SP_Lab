@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define MAX_LINE_LENGTH 100
+#define MAX_TOKEN_LENGTH 20
+
+typedef struct {
+    const char *mnemonic;
+    int length;
+    const char *opcode;
+} Mnemonic;
+
+Mnemonic mnemonics[] = {
+    {"STOP", 1, "01"}, {"ADD", 3, "02"}, {"SUB", 3, "03"},
+    {"MULT", 3, "04"}, {"MOVER", 3, "05"}, {"MOVEM", 3, "06"},
+    {"DIV", 3, "07"}, {"READ", 2, "08"}, {"PRINT", 2, "09"},
+    {"DS", 0, "00"}, {"DC", 0, "00"}, {"START", 0, "00"}, {"END", 0, "00"}
+};
+const int num_mnemonics = sizeof(mnemonics) / sizeof(mnemonics[0]);
+
+void generate_intermediate_code(const char *line) {
+    char token[MAX_TOKEN_LENGTH];
+    int lc = 0;  // Location Counter
+
+    // Split line into tokens
+    char *line_copy = strdup(line);
+    char *ptr = strtok(line_copy, " ,");
+
+    while (ptr != NULL) {
+        strcpy(token, ptr);
+        for (int i = 0; i < num_mnemonics; i++) {
+            if (strcmp(token, mnemonics[i].mnemonic) == 0) {
+                printf("%s %s %04d\n", mnemonics[i].mnemonic, mnemonics[i].opcode, lc);
+                lc += mnemonics[i].length;
+                break;
+            }
+        }
+        ptr = strtok(NULL, " ,");
+    }
+
+    free(line_copy);
+}
+
+int main() {
+    char line[MAX_LINE_LENGTH];
+
+    printf("Enter assembly code line by line (enter an empty line to finish):\n");
+    while (1) {
+        printf("> ");
+        if (fgets(line, sizeof(line), stdin) == NULL || line[0] == '\n') {
+            break;
+        }
+        generate_intermediate_code(line);
+    }
+
+    return 0;
+}

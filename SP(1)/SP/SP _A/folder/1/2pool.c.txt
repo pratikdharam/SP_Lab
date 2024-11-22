@@ -1,0 +1,122 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define MAX_LINE_LENGTH 100
+#define MAX_TOKEN_LENGTH 20
+#define MAX_LITERALS 100
+
+// Structure to hold literal information
+typedef struct {
+    char literal[MAX_TOKEN_LENGTH];
+    int address;
+} Literal;
+
+// Structure to hold pool information
+typedef struct {
+    int start_address;
+    int end_address;
+} Pool;
+
+Literal literal_table[MAX_LITERALS];
+int literal_count = 0;
+Pool pool_table[MAX_LITERALS];
+int pool_count = 0;
+
+int is_literal(const char *token) {
+    return token[0] == '=';  // Literals start with '='
+}
+
+// Function to add a literal to the literal table
+void add_literal_to_table(const char *literal, int address) {
+    strcpy(literal_table[literal_count].literal, literal);
+    literal_table[literal_count].address = address;
+    literal_count++;
+}
+
+// Function to generate a pool table
+void generate_pool_table() {
+    if (literal_count > 0) {
+        int literal_start = literal_table[0].address;
+        int literal_end = literal_table[0].address;
+        for (int i = 1; i < literal_count; i++) {
+            if (literal_table[i].address == literal_end + 1) {
+                literal_end = literal_table[i].address;
+            } else {
+                pool_table[pool_count].start_address = literal_start;
+                pool_table[pool_count].end_address = literal_end;
+                pool_count++;
+                literal_start = literal_table[i].address;
+                literal_end = literal_table[i].address;
+            }
+        }
+        pool_table[pool_count].start_address = literal_start;
+        pool_table[pool_count].end_address = literal_end;
+        pool_count++;
+    }
+}
+
+// Function to display the pool table
+void display_pool_table() {
+    printf("\nPool Table:\n");
+    printf("Start Address   End Address\n");
+    for (int i = 0; i < pool_count; i++) {
+        printf("%-15d %-15d\n", pool_table[i].start_address, pool_table[i].end_address);
+    }
+}
+
+// Function to generate the literal table
+void generate_literal_table(const char *line) {
+    char token[MAX_TOKEN_LENGTH];
+    int lc = 0;
+
+    // Split line into tokens
+    char *line_copy = strdup(line);
+    char *ptr = strtok(line_copy, " ,");
+
+    while (ptr != NULL) {
+        strcpy(token, ptr);
+
+        if (is_literal(token)) {
+            add_literal_to_table(token, lc);
+            lc++;
+        } else {
+            lc++;  // For other tokens (non-literal instructions), increment LC
+        }
+
+        ptr = strtok(NULL, " ,");
+    }
+
+    free(line_copy);
+}
+
+// Function to display the literal table
+void display_literal_table() {
+    printf("\nLiteral Table:\n");
+    printf("Literal       Address\n");
+    for (int i = 0; i < literal_count; i++) {
+        printf("%-12s %04d\n", literal_table[i].literal, literal_table[i].address);
+    }
+}
+
+int main() {
+    char line[MAX_LINE_LENGTH];
+
+    // Example Input and processing
+    printf("Enter assembly code line by line (enter an empty line to finish):\n");
+    while (1) {
+        printf("> ");
+        if (fgets(line, sizeof(line), stdin) == NULL || line[0] == '\n') {
+            break;
+        }
+        generate_literal_table(line);
+    }
+
+    // Display tables
+    display_literal_table();
+    generate_pool_table();
+    display_pool_table();
+
+    return 0;
+}

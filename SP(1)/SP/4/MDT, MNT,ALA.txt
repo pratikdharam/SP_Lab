@@ -1,0 +1,164 @@
+#include <stdio.h> 
+#include <string.h>
+
+#define MAX 100
+
+// Structures for the tables
+struct MDT {
+    int index;
+    char card[MAX];
+} mdt[MAX];
+
+struct MNT {
+    int index;
+    char name[MAX];
+    int mdt_index;
+} mnt[MAX];
+
+struct ALA {
+    int index;
+    char argument[MAX];
+} ala[MAX];
+
+// Function prototypes
+void processMacroDefinition(FILE *inputFile);
+void writeTablesToFile();
+void replaceArguments(char *line);
+
+int mdt_count = 0;
+int mnt_count = 0;
+int ala_count = 0;
+
+// Main function
+int main() {
+    FILE *inputFile = fopen("macro.asm", "r");
+
+    if (inputFile == NULL) {
+        printf("Error: Cannot open input file!\n");
+        return 1;
+    }
+
+    // Process the macro definitions from the input file
+    processMacroDefinition(inputFile);
+
+    // Write the output to files
+    writeTablesToFile();
+
+    fclose(inputFile);
+    return 0;
+}
+
+// Process Macro Definition
+void processMacroDefinition(FILE *inputFile) {
+    char line[MAX];
+    int insideMacro = 0;
+    int current_mnt_index = 0;
+
+    while (fgets(line, MAX, inputFile) != NULL) {
+        char word[MAX];
+
+        sscanf(line, "%s", word); // Read the first word of the line
+
+        if (strcmp(word, "MACRO") == 0) {
+            // Begin macro definition
+            insideMacro = 1;
+            fgets(line, MAX, inputFile); // Read the next line (macro name and parameters)
+            sscanf(line, "%s", word);
+
+            // Add macro name to MNT
+            mnt[mnt_count].index = mnt_count + 1;
+            strcpy(mnt[mnt_count].name, word);
+            mnt[mnt_count].mdt_index = mdt_count + 1;
+            current_mnt_index = mnt_count;
+            mnt_count++;
+
+            // Extract parameters and add to ALA
+            char *token = strtok(line, " ,\n");
+            token = strtok(NULL, " ,\n"); // Skip the macro name
+            while (token != NULL) {
+                ala[ala_count].index = ala_count + 1;
+                strcpy(ala[ala_count].argument, token);
+                ala_count++;
+                token = strtok(NULL, " ,\n");
+            }
+        } else if (strcmp(word, "MEND") == 0) {
+            // End macro definition
+            insideMacro = 0;
+            mdt[mdt_count].index = mdt_count + 1;
+            strcpy(mdt[mdt_count].card, "MEND");
+            mdt_count++;
+        } else if (insideMacro) {
+            // Replace parameters in the line with ALA entries
+            replaceArguments(line);
+
+            // Add modified line to MDT
+            mdt[mdt_count].index = mdt_count + 1;
+            strcpy(mdt[mdt_count].card, line);
+            mdt_count++;
+        }
+    }
+}
+
+// Function to replace arguments with positional references in ALA
+void replaceArguments(char *line) {
+    char tempLine[MAX];
+    strcpy(tempLine, line);
+
+    for (int i = 0; i < ala_count; i++) {
+        char *pos = strstr(tempLine, ala[i].argument);
+        if (pos != NULL) {
+            // Replace argument with positional reference (e.g., #1 for &A1)
+            char replacement[MAX];
+            snprintf(replacement, MAX, "#%d", i + 1);
+
+            // Replace the argument with replacement in line
+            char newLine[MAX] = "";
+            strncat(newLine, tempLine, pos - tempLine);
+            strcat(newLine, replacement);
+            strcat(newLine, pos + strlen(ala[i].argument));
+            strcpy(tempLine, newLine);
+        }
+    }
+    strcpy(line, tempLine);
+}
+
+// Function to write the MDT, MNT, and ALA tables to files
+void writeTablesToFile() {
+    int i;
+    FILE *mdtFile = fopen("MDT.txt", "w");
+    FILE *mntFile = fopen("MNT.txt", "w");
+    FILE *alaFile = fopen("ALA.txt", "w");
+
+    if (mdtFile == NULL || mntFile == NULL || alaFile == NULL) {
+        printf("Error: Cannot create output files!\n");
+        return;
+    }
+
+    // Writing MDT
+    fprintf(mdtFile, "Macro Definition Table (MDT):\n");
+    fprintf(mdtFile, "| Index | Card               |\n");
+    for (i = 0; i < mdt_count; i++) {
+        fprintf(mdtFile, "| %5d | %-18s |\n", mdt[i].index, mdt[i].card);
+    }
+
+    // Writing MNT
+    fprintf(mntFile, "Macro Name Table (MNT):\n");
+    fprintf(mntFile, "| Index | Macro Name | MDT Index |\n");
+    for (i = 0; i < mnt_count; i++) {
+        fprintf(mntFile, "| %5d | %-10s | %9d |\n", mnt[i].index, mnt[i].name, mnt[i].mdt_index);
+    }
+
+    // Writing ALA
+    fprintf(alaFile, "Argument List Array (ALA):\n");
+    fprintf(alaFile, "| Index | Argument  |\n");
+    for (i = 0; i < ala_count; i++) {
+        fprintf(alaFile, "| %5d | %-9s |\n", ala[i].index, ala[i].argument);
+    }
+
+    // Closing files
+    fclose(mdtFile);
+    fclose(mntFile);
+    fclose(alaFile);
+
+    printf("Tables have been written to MDT.txt, MNT.txt, and ALA.txt successfully.\n");
+}

@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
+
+#define MAX_LINE_LENGTH 100
+
+// Mnemonics Data
+typedef struct {
+    const char *mnemonic;
+    int length;
+    const char *opcode;
+} Mnemonic;
+
+Mnemonic mnemonics[] = {
+    {"STOP", 1, "01"}, {"ADD", 3, "02"}, {"SUB", 3, "03"},
+    {"MULT", 3, "04"}, {"MOVER", 3, "05"}, {"MOVEM", 3, "06"},
+    {"DIV", 3, "07"}, {"READ", 2, "08"}, {"PRINT", 2, "09"},
+    {"DS", 0, "00"}, {"DC", 0, "00"}, {"START", 0, "00"}, {"END", 0, "00"}
+};
+const int num_mnemonics = sizeof(mnemonics) / sizeof(mnemonics[0]);
+
+// Function to save Mnemonic table
+void save_mnemonic_to_file(FILE *file, const char *token, int address) {
+    for (int i = 0; i < num_mnemonics; i++) {
+        if (strcmp(token, mnemonics[i].mnemonic) == 0) {
+            fprintf(file, "%-10s %s %04d\n", token, mnemonics[i].opcode, address);
+            return;
+        }
+    }
+}
+
+// Function to process assembly code line and generate Mnemonic Table
+void process_line_for_mnemonics(char *line, FILE *mnemonics_file, int *lc) {
+    char *token = strtok(line, " ,");
+    while (token != NULL) {
+        for (int i = 0; i < num_mnemonics; i++) {
+            if (strcmp(token, mnemonics[i].mnemonic) == 0) {
+                save_mnemonic_to_file(mnemonics_file, token, *lc);
+                *lc += mnemonics[i].length;
+                break;
+            }
+        }
+        token = strtok(NULL, " ,");
+    }
+}
+
+int main() {
+    FILE *mnemonics_file = fopen("mnemonics.txt", "w");
+    if (mnemonics_file == NULL) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    char line[MAX_LINE_LENGTH];
+    int lc = 0;
+
+    printf("Enter assembly code line by line (enter an empty line to finish):\n");
+    while (1) {
+        printf("> ");
+        if (fgets(line, sizeof(line), stdin) == NULL || line[0] == '\n') {
+            break;
+        }
+        process_line_for_mnemonics(line, mnemonics_file, &lc);
+    }
+
+    fclose(mnemonics_file);
+    printf("Mnemonic Table generated successfully.\n");
+    return 0;
+}

@@ -1,0 +1,10 @@
+MACRO MACRO1 &ARG1, &ARG2
+    MOV &ARG1, &ARG2
+    ADD &ARG1, =1
+ENDM
+
+START:
+    MACRO1 A, B
+    A DS 10
+    B DS 20
+END    
